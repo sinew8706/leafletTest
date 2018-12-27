@@ -23,8 +23,6 @@ margin:0;
     margin: 0 0 5px;
     color: #777;
 }
-
-
 </style>
 
 
@@ -47,22 +45,58 @@ margin:0;
 var geojson;
 
 
-var map1=L.map('mapid1'//,{
-	//center: [37.5464700, 126.9769630],
-	//zoom: 15
-	//});
-	).setView([37.5664700, 126.9779630],17); // 센터를 잡거나 셋뷰로 설정
+
+
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ // 타일레이어 url
+	id : 'base',
     attribution:'&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors' , // 우측 하단 출처
 	maxzoom:20, // 줌최대치
 	minzoom:10, // 줌최소치
-}).addTo(map1);
+});//.addTo(map1);
 // 좌표는 [세로,가로] [↑,→]로 갈수록 커진다
 
+var osm2 = L.tileLayer('https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png',{ // 타일레이어 url
+    id:'cycle',
+	attribution:'&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors' , // 우측 하단 출처
+	maxzoom:20, // 줌최대치
+	minzoom:10, // 줌최소치
+}); /*.addTo(map1);*/
+
+var osm3 = L.tileLayer('https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png',{ // 타일레이어 url
+    id:'transport',
+	attribution:'&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors' , // 우측 하단 출처
+	maxzoom:20, // 줌최대치
+	minzoom:10, // 줌최소치
+});
+
+var osm4 = L.tileLayer('https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png',{ // 타일레이어 url
+    id:'landscape',
+	attribution:'&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors' , // 우측 하단 출처
+	maxzoom:20, // 줌최대치
+	minzoom:10, // 줌최소치
+});
+
+var map1=L.map('mapid1',{
+	center: [37.5464700, 126.9769630],
+	zoom: 17,
+	layers: [osm] // 최초 레이어
+});
+//).setView([37.5664700, 126.9779630],17); // 센터를 잡거나 셋뷰로 설정
+
+	
+
+
+
+
+
+	
+
+
 // 마커
-var marker1 = L.marker([37.5664700, 126.9779630]).addTo(map1);
-var marker2 = L.marker([37.5674700, 126.9779630]).addTo(map1);
+var marker1 = L.marker([37.5664700, 126.9779630]);
+var marker2 = L.marker([37.5674700, 126.9779630]);
+
 
 
 
@@ -92,12 +126,14 @@ color: 'gray',
 }).addTo(map1);
 
 // 팝업
-marker1.bindPopup("'손에 손잡고'가 울려 퍼지는 이곳..").openPopup(); // 팝업을 처음부터 오픈
+marker1.bindPopup("'손에 손잡고'가 울려 퍼지는 이곳..");
 circle1.bindPopup("원팝업");
 polygon1.bindPopup("삼각형팝업");
 // 툴팁
 polygon1.bindTooltip("삼각형");
 marker2.bindTooltip("마커+툴팁 팝업X");
+
+
 
 // 레이어형식 팝업
 var popup1 = L.popup()
@@ -154,7 +190,7 @@ var Icon1 = new xmasIcon({iconUrl: 'images/img5.png'}),
 
 
 L.marker([37.567321, 126.972417], {icon: Icon1}).addTo(map1).bindTooltip("교회아이콘");
-L.marker([37.564965, 126.97188], {icon: Icon2}).addTo(map1).bindPopup("추카포카");
+L.marker([37.564965, 126.97188], {icon: Icon2}).addTo(map1).bindPopup("추카포카").openPopup(); // 팝업을 처음부터 오픈
 L.marker([37.566241, 126.971301], {icon: Icon3}).addTo(map1).bindPopup("김연아쨩");
 
 
@@ -420,7 +456,7 @@ function overFeature(e) {
 
 // 마우스 아웃 설정
 function outFeature(e) {
-    geojson.resetStyle(e.target);
+    geojson1.resetStyle(e.target);
 	info.update();
 }
 
@@ -439,7 +475,7 @@ function mouseEvent(feature, layer) {
 }
 
 // 마우스 이벤트 적용
-geojson = L.geoJson(seoul1, {
+geojson1 = L.geoJson(seoul1, {
     style: style,
     onEachFeature: mouseEvent
 }).addTo(map1);
@@ -463,7 +499,29 @@ info.addTo(map1);
 
 
 
+/* 레이어와 그룹 컨트롤*/
 
+// 마커를 모아서 관리
+var markers1 = L.layerGroup(
+	[marker1,marker2,circle1,polygon1] // 묶어서 관리
+);
+
+// 마커 셀렉트박스
+var overMarkers = {
+	"마커": markers1,
+	"행정구역": geojson1 // 레이어관리 가능
+};
+
+// 기본레이어 선택
+var baseMaps = {
+	"기본": osm,
+	"자전거": osm2,
+	"수송": osm3,
+	"조경": osm4
+};
+
+
+L.control.layers(baseMaps, overMarkers).addTo(map1);
 
 
 </script>
