@@ -50,29 +50,52 @@ leaflet 사용법
 - 기본 맵생성
 ```
 <script>
-var map1=L.map('mapid1'//,{
-	//center: [37.5464700, 126.9769630],
-	//zoom: 15
-	//});
-	).setView([37.5664700, 126.9779630],17); // 센터를 잡거나 셋뷰로 설정
-
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ // 타일레이어 url
+	id : 'base',
     attribution:'&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors' , // 우측 하단 출처
 	maxzoom:20, // 줌최대치
 	minzoom:10, // 줌최소치
-}).addTo(map1);
+});//.addTo(map1);
+// 좌표는 [세로,가로] [↑,→]로 갈수록 커진다
+
+var osm2 = L.tileLayer('https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png',{ // 타일레이어 url
+    id:'cycle',
+	attribution:'&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors' , // 우측 하단 출처
+	maxzoom:20, // 줌최대치
+	minzoom:10, // 줌최소치
+}); /*.addTo(map1);*/
+
+var osm3 = L.tileLayer('https://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png',{ // 타일레이어 url
+    id:'transport',
+	attribution:'&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors' , // 우측 하단 출처
+	maxzoom:20, // 줌최대치
+	minzoom:10, // 줌최소치
+});
+
+var osm4 = L.tileLayer('https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png',{ // 타일레이어 url
+    id:'landscape',
+	attribution:'&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> Contributors' , // 우측 하단 출처
+	maxzoom:20, // 줌최대치
+	minzoom:10, // 줌최소치
+});
+
+var map1=L.map('mapid1',{
+	center: [37.5464700, 126.9769630], // 센터
+	zoom: 17, // 줌설정
+	layers: [osm] // 최초 레이어
+});
 // 좌표는 [세로,가로] [↑,→]로 갈수록 커진다
 </script>
 ```
 
 
 - 마커
->마커만들기
+>마커생성
 ```
-var marker1 = L.marker([37.5664700, 126.9779630]).addTo(map1);
-var marker2 = L.marker([37.5674700, 126.9779630]).addTo(map1);
+var marker1 = L.marker([37.5664700, 126.9779630]);
+var marker2 = L.marker([37.5674700, 126.9779630]);
 ```
->마커 바로 표현
+>마커 생성과 바로 표현
 ```
 L.marker([37.5667700, 126.9779330]).addTo(map1)
 	.bindPopup("객체로 따로 만들지 않고 생성과 바인딩을 한번에 하는 경우")
@@ -107,7 +130,7 @@ color: 'gray',
 - 팝업, 툴팁
 >팝업 - 클릭시 생성되어 유지
 ```
-marker1.bindPopup("'손에 손잡고'가 울려 퍼지는 이곳..").openPopup(); // 팝업을 처음부터 오픈
+marker1.bindPopup("'손에 손잡고'가 울려 퍼지는 이곳..");
 circle1.bindPopup("원팝업");
 polygon1.bindPopup("삼각형팝업");
 ```
@@ -191,7 +214,7 @@ var Icon1 = new xmasIcon({iconUrl: 'images/img5.png'}),
 >다중아이콘 마커 생성
 ```
 L.marker([37.567321, 126.972417], {icon: Icon1}).addTo(map1).bindPopup("교회아이콘");
-L.marker([37.564965, 126.97188], {icon: Icon2}).addTo(map1).bindPopup("추카포카");
+L.marker([37.564965, 126.97188], {icon: Icon2}).addTo(map1).bindPopup("추카포카").openPopup(); // 팝업을 처음부터 오픈
 L.marker([37.566241, 126.971301], {icon: Icon3}).addTo(map1).bindPopup("김연아쨩");
 ```
 
@@ -470,7 +493,7 @@ function overFeature(e) {
 
 // 마우스 아웃 설정
 function outFeature(e) {
-    geojson.resetStyle(e.target);
+    geojson1.resetStyle(e.target);
 	info.update();
 }
 
@@ -489,7 +512,7 @@ function mouseEvent(feature, layer) {
 }
 
 // 마우스 이벤트 적용
-geojson = L.geoJson(seoul1, { // seoul1 -> seoul.geojson:서울시 샘플데이터
+geojson1 = L.geoJson(seoul1, { // seoul1 -> seoul.geojson:서울시 샘플데이터
     style: style,
     onEachFeature: mouseEvent
 }).addTo(map1);
@@ -512,4 +535,36 @@ info.update = function (props) {
         : '마우스를 올리세요.');
 };
 info.addTo(map1);
+```
+
+***
+20181227
+
+- 레이어와 그룹 컨트롤
+
+>마커를 모아서 관리
+```
+var markers1 = L.layerGroup(
+	[marker1,marker2,circle1,polygon1] // 묶어서 관리
+);
+
+// 마커 셀렉트박스
+var overMarkers = {
+	"마커": markers1,
+	"행정구역": geojson1 // 레이어관리 가능
+};
+```
+
+>기본레이어 컨트롤
+```
+// 레이어 셀렉트박스 - 상단의 osm설정필요
+var baseMaps = {
+	"기본": osm,
+	"자전거": osm2,
+	"수송": osm3,
+	"조경": osm4
+};
+
+// 레이어와 마커그룹 컨트롤
+L.control.layers(baseMaps, overMarkers).addTo(map1);
 ```
